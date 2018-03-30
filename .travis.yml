@@ -1,0 +1,46 @@
+language: java
+jdk: oraclejdk8
+notifications:
+  email: false
+env:
+  global:
+  - TERM=dumb
+
+before_install: '[ "${TRAVIS_PULL_REQUEST}" != "false" ] || openssl aes-256-cbc -K $encrypted_9240e940099a_key -iv $encrypted_9240e940099a_iv -in keystore.jks.enc -out keystore.jks -d'
+install: ./gradlew setupCIWorkspace -S
+script: ./gradlew build -S
+
+cache:
+  directories:
+    - '$HOME/.m2'
+    - '$HOME/.gradle'
+before_cache:
+    - rm -f $HOME/.gradle/caches/*/*.lock
+
+branches:
+  except:
+  - /^release-.*$/
+
+deploy:
+  - provider: script
+    skip_cleanup: true
+    script: ./gradlew curseforge -S
+    on:
+      all_branches: true
+      repo: CyclopsMC/CompressedChests
+      tags: true
+  - provider: releases
+    skip_cleanup: true
+    api_key:
+      secure: Qzoa2FFAL5gJXy4lOJ2Op+ucOsiqZRI+2erjN6C/HlBPzwkoGDnv3FCRKupRAKVgdOx+os8+Sy5uNwAQ6CItaqs1pnCWlMTACCm8JMXtVWBpPCh9zZPlyJ17w5DOmXDhhmYtxFe95Z3I35Fo2uc75yTxodmxKlg5sRru8xrVrTNUvRrcE9BMNRhLtPZ6rAmbQjU71JgfgYSTombLIehtEmbitjmVkctSCWbdyX8yC7mcMGvQaQnOqp1WwypX00lvXMCEse7w/q2V2a0sh9OsqzKISVc6BM1BrtyJ8/d4EA6LxhNlOiNJgM0/d5k/cS3VFV9FddcUJ+9FMSEid/FC9MOOqof0fB6l6LnlNO2iFnDzUv3t3zeZ2mKFZRA65sUKSRyLEi5mLLp95BMv7LUu9S9S9f+WxK5w71oMj/Q9L8EDZZG0scIyrHbETGxcR9CSCK00DyFZlq8b5KYg1gZt2jccJjyqwhWOlEscLL3y0RXy6NIyR8c+a9nCL8fIWzR6cXcCC6WRirUBcVXpwjk6I8qCOzFuBmSEZekt2G6y+MYBOk9YDRXXEWHAZoH7Fx10lvAxeI/acK2jmzPYMJkAOI6Aavxn3PzfGOH5VnaaIuV4B7U3PZebLjSRrs1+8Tk13B1bPSxxonSRYzJUr0PSejzpGEae2s+YNrBdCgCze68=
+    on:
+      all_branches: true
+      repo: CyclopsMC/CompressedChests
+      tags: true
+  - provider: script
+    skip_cleanup: true
+    script: ./gradlew uploadArchives -S
+    on:
+      all_branches: true
+      repo: CyclopsMC/CompressedChests
+      condition: "$TRAVIS_BRANCH =~ ^(master|release).*$"
